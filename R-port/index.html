@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ramaneshwar M — 3D Artist</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --border: rgba(255, 255, 255, 0.07);
+      --text: #f0ede8;
+      --muted: #888;
+      --gold: #c9a96e;
+      --gold-dim: rgba(201, 169, 110, 0.12);
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 20px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13, 13, 13, 0.85);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 60px;
+      padding: 100px 48px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .profile-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .profile-pic {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold);
+      object-fit: cover;
+      background: #222;
+      flex-shrink: 0;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .status-badge::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4ade80;
+      display: block;
+      box-shadow: 0 0 6px rgba(74, 222, 128, 0.5);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.35
+      }
+    }
+
+    .profile-name-sm {
+      font-size: 0.88rem;
+      margin-bottom: 3px;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.6rem, 4.5vw, 4rem);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero-bio {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: var(--muted);
+      font-weight: 300;
+      max-width: 400px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 26px;
+      border-radius: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-block;
+    }
+
+    .btn-solid {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .btn-solid:hover {
+      background: var(--gold);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      color: var(--gold);
+      display: block;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 3px;
+      display: block;
+    }
+
+    .hero-canvas-wrap {
+      position: relative;
+    }
+
+    #hero-canvas {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    .canvas-hint {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.68rem;
+      color: #555;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    hr.div {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0 48px;
+    }
+
+    .section {
+      padding: 88px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .sec-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .sec-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      font-weight: 400;
+      margin-bottom: 48px;
+    }
+
+    .sec-title em {
+      font-style: italic;
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .skill-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 26px 22px;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+
+    .skill-card:hover {
+      border-color: rgba(201, 169, 110, 0.4);
+      transform: translateY(-3px);
+    }
+
+    .skill-card-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 18px;
+      display: block;
+    }
+
+    .skill-rows {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .skill-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.87rem;
+      color: var(--text);
+      font-weight: 300;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .skill-row:last-child {
+      border-bottom: none;
+    }
+
+    .skill-pill {
+      font-size: 0.62rem;
+      background: var(--gold-dim);
+      color: var(--gold);
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .exp-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 36px;
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 44px;
+    }
+
+    .exp-company {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      margin-bottom: 5px;
+    }
+
+    .exp-period {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .exp-left-border {
+      border-right: 1px solid var(--border);
+      padding-right: 44px;
+    }
+
+    .exp-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .exp-tag {
+      font-size: 0.62rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .exp-role {
+      font-size: 0.72rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .exp-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .exp-list li {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: #999;
+      font-weight: 300;
+      padding-left: 15px;
+      position: relative;
+    }
+
+    .exp-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .work-card {
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      aspect-ratio: 3/4;
+      cursor: pointer;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+
+    .work-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(201, 169, 110, 0.35);
+    }
+
+    .work-card canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    .work-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 18px 16px 16px;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.82));
+    }
+
+    .work-title {
+      font-size: 0.92rem;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .work-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .work-arrow {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(13, 13, 13, 0.75);
+      border: 1px solid rgba(201, 169, 110, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--gold);
+      opacity: 0;
+      transition: opacity 0.2s;
+      backdrop-filter: blur(6px);
+    }
+
+    .work-card:hover .work-arrow {
+      opacity: 1;
+    }
+
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .modal-bg.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-box {
+      width: 88vw;
+      max-width: 860px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      transform: translateY(14px);
+      transition: transform 0.3s;
+      max-height: 90vh;
+      position: relative;
+    }
+
+    .modal-bg.open .modal-box {
+      transform: translateY(0);
+    }
+
+    #modal-canvas {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 400px;
+      display: block;
+    }
+
+    .modal-info {
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      overflow-y: auto;
+    }
+
+    .m-cat {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+
+    .m-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+
+    .m-desc {
+      font-size: 0.87rem;
+      line-height: 1.75;
+      color: var(--muted);
+      font-weight: 300;
+      margin-bottom: 24px;
+    }
+
+    .m-specs {
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .m-spec {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+
+    .m-spec-k {
+      color: var(--muted);
+    }
+
+    .m-spec-v {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .m-hint {
+      font-size: 0.62rem;
+      color: #555;
+      letter-spacing: 0.08em;
+      margin-top: 18px;
+      text-transform: uppercase;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(20, 20, 20, 0.9);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s, border-color 0.2s;
+      z-index: 10;
+    }
+
+    .modal-close:hover {
+      color: var(--text);
+      border-color: var(--gold);
+    }
+
+    .contact-grid {
+      /* display: grid; */
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: start;
+    }
+
+    .contact-bio {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: var(--muted);
+      font-weight: 300;
+      margin-bottom: 28px;
+    }
+
+    .contact-items {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.87rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .contact-item:hover {
+      border-color: rgba(201, 169, 110, 0.4);
+      background: var(--gold-dim);
+    }
+
+    .ci-icon {
+      color: var(--gold);
+      font-size: 0.85rem;
+      width: 16px;
+      text-align: center;
+    }
+
+    .ci-label {
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 1px;
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 11px 14px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.87rem;
+      color: var(--text);
+      font-weight: 300;
+      outline: none;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: rgba(201, 169, 110, 0.5);
+    }
+
+    .field textarea {
+      height: 105px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 26px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .footer-copy {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .fade {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+
+    .fade.in {
+      opacity: 1;
+      transform: none;
+    }
+
+    .d1 {
+      transition-delay: 0.1s;
+    }
+
+    .d2 {
+      width: 100%;
+      transition-delay: 0.2s;
+    }
+
+    .d3 {
+      transition-delay: 0.3s;
+    }
+
+    .colum-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      /* change from fit-content */
+      border-radius: 8px;
+      border: 1px solid var(--gold-dim);
+      gap: 14px;
+      padding: 10px;
+    }
+
+    .card-img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+
+    .column-card:hover {
+      background: black;
+    }
+
+    #fade-d2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+
+    @media (max-width: 860px) {
+      nav {
+        padding: 16px 24px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 88px 24px 48px;
+        gap: 36px;
+      }
+
+      .hero-canvas-wrap {
+        display: none;
+      }
+
+      .section {
+        padding: 60px 24px;
+      }
+
+      .skills-grid,
+      .work-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .exp-card {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .exp-left-border {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding-right: 0;
+        padding-bottom: 24px;
+      }
+
+      .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+
+      .modal-box {
+        grid-template-columns: 1fr;
+      }
+
+      #modal-canvas {
+        min-height: 260px;
+      }
+
+      hr.div {
+        margin: 0 24px;
+      }
+
+      footer {
+        padding: 22px 24px;
+      }
+    }
+
+    @media (max-width: 520px) {
+
+      .skills-grid,
+      .work-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      #fade-d2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <a href="#" class="nav-name">Ramaneshwar M</a>
+    <ul class="nav-links">
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="profile-row fade">
+        <img src="./assets/profile.jpg" class="profile-pic" alt="Ramaneshwar" onerror="this.style.background='#2a2218'">
+        <div>
+          <div class="profile-name-sm">Ramaneshwar Manimaran</div>
+          <div class="status-badge">Available for opportunities</div>
+        </div>
+      </div>
+      <h1 class="hero-title fade d1">3D Artist &<br><em>Visual Designer</em></h1>
+      <p class="hero-bio fade d2">Specialist in photorealistic product visualization, PBR texturing, and rendering. 18+
+        months delivering studio-quality 3D assets using Blender, Substance Painter, and V-Ray.</p>
+      <div class="hero-actions fade d2">
+        <a href="#work" class="btn btn-solid">View Work</a>
+        <a href="#contact" class="btn btn-ghost">Get in Touch</a>
+      </div>
+      <div class="hero-stats fade d3">
+        <div><span class="stat-num">18+</span><span class="stat-label">Months Exp.</span></div>
+        <div><span class="stat-num">100+</span><span class="stat-label">Models</span></div>
+        <div><span class="stat-num">3</span><span class="stat-label">Core Tools</span></div>
+      </div>
+    </div>
+    <div class="hero-canvas-wrap fade d2">
+      <canvas id="hero-canvas"></canvas>
+      <p class="canvas-hint">Drag to rotate</p>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- SKILLS -->
+  <div class="section" id="skills">
+    <span class="sec-label fade">Expertise</span>
+    <h2 class="sec-title fade d1">Skills & <em>Tools</em></h2>
+    <div class="skills-grid">
+      <div class="skill-card fade">
+        <span class="skill-card-label">3D Modelling</span>
+        <div class="skill-rows">
+          <div class="skill-row">Blender 3D <span class="skill-pill">Expert</span></div>
+          <div class="skill-row">Hard Surface <span class="skill-pill">Expert</span></div>
+          <div class="skill-row">UV Unwrapping <span class="skill-pill">Advanced</span></div>
+          <div class="skill-row">Organic Sculpting <span class="skill-pill">Intermediate</span></div>
+        </div>
+      </div>
+      <div class="skill-card fade d1">
+        <span class="skill-card-label">Texturing & Materials</span>
+        <div class="skill-rows">
+          <div class="skill-row">Substance Painter <span class="skill-pill">Expert</span></div>
+          <div class="skill-row">PBR Workflows <span class="skill-pill">Expert</span></div>
+          <div class="skill-row">Shader Nodes <span class="skill-pill">Advanced</span></div>
+          <div class="skill-row">Procedural Textures <span class="skill-pill">Advanced</span></div>
+        </div>
+      </div>
+      <div class="skill-card fade d2">
+        <span class="skill-card-label">Rendering & Post</span>
+        <div class="skill-rows">
+          <div class="skill-row">V-Ray <span class="skill-pill">Advanced</span></div>
+          <div class="skill-row">Blender Cycles <span class="skill-pill">Expert</span></div>
+          <div class="skill-row">HDRI Lighting <span class="skill-pill">Expert</span></div>
+          <div class="skill-row">Adobe Photoshop <span class="skill-pill">Advanced</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- EXPERIENCE -->
+  <div class="section" id="experience">
+    <span class="sec-label fade">Career</span>
+    <h2 class="sec-title fade d1"><em>Experience</em></h2>
+    <div class="exp-card fade d1">
+      <div class="exp-left-border">
+        <div class="exp-company">Zealous Services</div>
+        <div class="exp-period">Aug 2024 — Feb 2026 · Full-time</div>
+        <div class="exp-period" style="margin-bottom:20px">Chennai, India</div>
+        <div class="exp-tags">
+          <span class="exp-tag">Blender</span>
+          <span class="exp-tag">Substance Painter</span>
+          <span class="exp-tag">V-Ray</span>
+          <span class="exp-tag">Photoshop</span>
+        </div>
+      </div>
+      <div>
+        <div class="exp-role">3D Artist</div>
+        <ul class="exp-list">
+          <li>Produced high-quality 3D models for product visualization and commercial use across multiple client
+            campaigns.</li>
+          <li>Built realistic PBR materials and textures in Substance Painter, significantly improving visual fidelity
+            of delivered assets.</li>
+          <li>Executed advanced studio lighting and rendering pipelines using V-Ray and Cycles to achieve photorealistic
+            outputs.</li>
+          <li>Optimized polygon counts and file formats for delivery-ready assets without quality loss.</li>
+          <li>Collaborated with project managers and clients to meet creative briefs and tight production deadlines.
+          </li>
+          <li>Maintained design consistency across the pipeline, contributing to a more efficient studio workflow.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- WORK -->
+  <div class="section" id="work">
+    <span class="sec-label fade">Portfolio</span>
+    <h2 class="sec-title fade d1">Selected <em>Work</em></h2>
+    <div class="work-grid" id="work-grid"></div>
+  </div>
+
+  <hr class="div">
+
+  <div class="section" id="contact">
+    <span class="sec-label fade">Models</span>
+    <h2 class="sec-title fade d1">Sample <em>Works</em></h2>
+    <div class="contact-grid">
+      <!-- <div class="fade d1">
+        <p class="contact-bio">Open to full-time roles. If you have a product that needs exceptional visualization, I'd
+          love to help bring it to life.</p>
+        <div class="contact-items">
+          <a href="mailto:ramaneshwarmanimaran@gmail.com" class="contact-item">
+            <span class="ci-icon">✉</span>
+            <div><span class="ci-label">Email</span>ramaneshwarmanimaran@gmail.com</div>
+          </a>
+          <a href="tel:+919176378232" class="contact-item">
+            <span class="ci-icon">☎</span>
+            <div><span class="ci-label">Phone</span>+91 91763 78232</div>
+          </a>
+          <div class="contact-item">
+            <span class="ci-icon">◎</span>
+            <div><span class="ci-label">Location</span>Chennai, Tamil Nadu, India</div>
+          </div>
+        </div>
+      </div> -->
+      <div class="contact-form fade d2" id="fade-d2">
+        <!-- <div class="colum-card">
+          <img class="card-img" src="./assets/sample1.jpg" />
+          <div>Chennai, Tamil Nadu, India</div>
+        </div> -->
+        <!--  <div class="field"><label>Name</label><input type="text" placeholder="Your name"></div>
+      <div class="field"><label>Email</label><input type="email" placeholder="you@company.com"></div>
+      <div class="field"><label>Message</label><textarea placeholder="Tell me about your project..."></textarea></div>
+      <button class="btn btn-solid" style="align-self:flex-start" onclick="alert('Message sent! I\'ll reply within 24 hours.')">Send Message</button>-->
+      </div>
+    </div>
+  </div>
+  <hr class="div" />
+
+  <!-- CONTACT -->
+  <div class="section" id="contact">
+    <span class="sec-label fade">Get In Touch</span>
+    <h2 class="sec-title fade d1">Let's <em>Connect</em></h2>
+    <div class="contact-grid">
+      <div class="fade d1">
+        <p class="contact-bio">Open to full-time roles. If you have a product that needs exceptional visualization, I'd
+          love to help bring it to life.</p>
+        <div class="contact-items">
+          <a href="mailto:ramaneshwarmanimaran@gmail.com" class="contact-item">
+            <span class="ci-icon">✉</span>
+            <div><span class="ci-label">Email</span>ramaneshwarmanimaran@gmail.com</div>
+          </a>
+          <a href="tel:+919176378232" class="contact-item">
+            <span class="ci-icon">☎</span>
+            <div><span class="ci-label">Phone</span>+91 91763 78232</div>
+          </a>
+          <div class="contact-item">
+            <span class="ci-icon">◎</span>
+            <div><span class="ci-label">Location</span>Chennai, Tamil Nadu, India</div>
+          </div>
+        </div>
+      </div>
+      <!--  <div class="contact-form fade d2">
+        <div class="colum-card">
+          <img class="card-img" src="./assets/sample1.jpg" />
+          <div>Chennai, Tamil Nadu, India</div>
+        </div>
+        <div class="field"><label>Name</label><input type="text" placeholder="Your name"></div>
+      <div class="field"><label>Email</label><input type="email" placeholder="you@company.com"></div>
+      <div class="field"><label>Message</label><textarea placeholder="Tell me about your project..."></textarea></div>
+      <button class="btn btn-solid" style="align-self:flex-start" onclick="alert('Message sent! I\'ll reply within 24 hours.')">Send Message</button>
+      </div>-->
+    </div>
+  </div>
+
+  <footer>
+    <span class="footer-name">Ramaneshwar M</span>
+    <span class="footer-copy">© 2026 · 3D Artist · Chennai, India</span>
+  </footer>
+
+  <!-- MODAL -->
+  <div class="modal-bg" id="modal-bg" onclick="handleBgClick(event)">
+    <div class="modal-box" id="modal-box">
+      <canvas id="modal-canvas"></canvas>
+      <div class="modal-info">
+        <div class="m-cat" id="m-cat"></div>
+        <h2 class="m-title" id="m-title"></h2>
+        <p class="m-desc" id="m-desc"></p>
+        <div class="m-specs">
+          <div class="m-spec"><span class="m-spec-k">Software</span><span class="m-spec-v" id="m-sw"></span></div>
+          <div class="m-spec"><span class="m-spec-k">Technique</span><span class="m-spec-v" id="m-tech"></span></div>
+          <div class="m-spec"><span class="m-spec-k">Category</span><span class="m-spec-v" id="m-type"></span></div>
+        </div>
+        <p class="m-hint">Drag to rotate · Scroll to zoom</p>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+  </div>
+
+  <script>
+
+    const portfolioItems = [
+      {
+        image: "./assets/sample2.jpg",
+        title: "Minimal Glass Holder - Metallic Finish"
+      },
+      {
+        image: "./assets/sample3.jpg",
+        title: "Modern Table Lamp - Product Visualization"
+      },
+      {
+        image: "./assets/sample4.jpg",
+        title: "Floral Arrangement - Realistic Rendering"
+      },
+      {
+        image: "./assets/sample5.jpg",
+        title: "Fabric Cushion - Texture Work"
+      },
+      {
+        image: "./assets/sample1.jpg",
+        title: "Halloween Decoration - Material Study"
+      }
+    ];
+    // Fade on scroll
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.1 });
+    document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+    // Three helpers
+    function mkR(canvas, bg = 0x141414) {
+      const r = new THREE.WebGLRenderer({ canvas, antialias: true });
+      r.setPixelRatio(Math.min(devicePixelRatio, 2));
+      r.setClearColor(bg);
+      r.shadowMap.enabled = true;
+      return r;
+    }
+    function sync(r, c, cam) {
+      const w = c.clientWidth, h = c.clientHeight || 1;
+      if (r.domElement.width !== w || r.domElement.height !== h) { r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
+    }
+    function lights(scene) {
+      scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+      const d = new THREE.DirectionalLight(0xfff5e0, 1.4); d.position.set(4, 7, 4); d.castShadow = true; scene.add(d);
+      const f = new THREE.DirectionalLight(0xc9a96e, 0.5); f.position.set(-4, 2, -3); scene.add(f);
+    }
+    const gMat = () => new THREE.MeshStandardMaterial({ color: 0xc9a96e, metalness: 0.85, roughness: 0.18 });
+
+    // ── Hero ─────────────────────────────────────────────────────────────────
+    (function () {
+      const canvas = document.getElementById('hero-canvas');
+      const r = mkR(canvas); const scene = new THREE.Scene();
+      const cam = new THREE.PerspectiveCamera(42, 1, 0.1, 100); cam.position.set(0, 0.3, 5);
+      lights(scene);
+      const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.85, 0.26, 128, 32), gMat());
+      knot.castShadow = true; scene.add(knot);
+      [[2.1, 0.5, -0.5], [-1.9, 0.2, -0.8], [1.4, -1, 0.5], [-1.4, -0.8, 0.6]].forEach(([x, y, z]) => {
+        const s = new THREE.Mesh(new THREE.SphereGeometry(0.11, 20, 20), gMat()); s.position.set(x, y, z); scene.add(s);
+      });
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.013, 8, 100), new THREE.MeshStandardMaterial({ color: 0xc9a96e, metalness: 0.7, roughness: 0.3, transparent: true, opacity: 0.35 }));
+      ring.rotation.x = 0.5; scene.add(ring);
+      let drag = false, lx = 0, ly = 0, t = 0;
+      canvas.addEventListener('mousedown', e => { drag = true; lx = e.clientX; ly = e.clientY; });
+      window.addEventListener('mouseup', () => drag = false);
+      window.addEventListener('mousemove', e => { if (!drag) return; knot.rotation.y += (e.clientX - lx) * 0.008; knot.rotation.x += (e.clientY - ly) * 0.005; lx = e.clientX; ly = e.clientY; });
+      (function loop() { requestAnimationFrame(loop); t += 0.008; if (!drag) knot.rotation.y += 0.005; ring.rotation.z = t * 0.1; knot.position.y = Math.sin(t) * 0.06; sync(r, canvas, cam); r.render(scene, cam); })();
+    })();
+
+    // ── Work cards ────────────────────────────────────────────────────────────
+    const works = [
+      { title: 'Abstract Form', sub: 'Sculptural Art', cat: 'Abstract', desc: 'Mathematical geometry with procedural displacement and dramatic directional lighting on a complex surface topology.', sw: 'Blender · Cycles', tech: 'Displacement · Sculpt', type: 'Abstract Art', s: 'knot' },
+      { title: 'Geo Study', sub: 'Hard Surface', cat: 'Architecture', desc: 'Minimal hard-surface geometry demonstrating precision modelling, clean edge flow, and monochromatic material design.', sw: 'Blender · V-Ray', tech: 'Hard Surface · Bevel', type: 'Architectural', s: 'ico' },
+    ];
+
+    function buildScene(s) {
+      const scene = new THREE.Scene(); scene.background = new THREE.Color(0x141414);
+      const cam = new THREE.PerspectiveCamera(44, 1, 0.1, 100); cam.position.set(0, 0.3, 3.6);
+      lights(scene); let mesh;
+      if (s === 'knot') {
+        mesh = new THREE.Mesh(new THREE.TorusKnotGeometry(0.75, 0.22, 128, 32, 3, 5), gMat()); mesh.castShadow = true; scene.add(mesh);
+      } else {
+        mesh = new THREE.Group();
+        mesh.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 0), new THREE.MeshStandardMaterial({ color: 0x1e1e1e, metalness: 0.35, roughness: 0.45 })));
+        mesh.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.88, 0), new THREE.MeshBasicMaterial({ color: 0xc9a96e, wireframe: true, transparent: true, opacity: 0.5 })));
+        scene.add(mesh);
+      }
+      return { scene, cam, mesh };
+    }
+
+    const grid = document.getElementById('work-grid');
+    const animators = [];
+
+    works.forEach((item, i) => {
+      const card = document.createElement('div');
+      card.className = 'work-card fade' + (i % 3 === 1 ? ' d1' : i % 3 === 2 ? ' d2' : '');
+      const cv = document.createElement('canvas');
+      card.appendChild(cv);
+      card.insertAdjacentHTML('beforeend', `<div class="work-info"><div class="work-title">${item.title}</div><div class="work-sub">${item.sub}</div></div><div class="work-arrow">↗</div>`);
+      grid.appendChild(card);
+      io.observe(card);
+
+      const renderer = mkR(cv);
+      const { scene, cam, mesh } = buildScene(item.s);
+      let hover = false, t = 0;
+      card.addEventListener('mouseenter', () => hover = true);
+      card.addEventListener('mouseleave', () => hover = false);
+      card.addEventListener('click', () => openModal(item));
+      animators.push(() => { t += 0.01; if (mesh && mesh.rotation) { mesh.rotation.y += hover ? 0.018 : 0.005; if (mesh.position) mesh.position.y = Math.sin(t) * 0.07; } sync(renderer, cv, cam); renderer.render(scene, cam); });
+    });
+
+    (function loop() { requestAnimationFrame(loop); animators.forEach(fn => fn()); })();
+
+    // ── Modal ──────────────────────────────────────────────────────────────────
+    let mR = null, mAnim = null, mDrag = false, mlx = 0, mly = 0, mz = 3.6;
+    function openModal(item) {
+      document.getElementById('m-cat').textContent = item.cat;
+      document.getElementById('m-title').textContent = item.title;
+      document.getElementById('m-desc').textContent = item.desc;
+      document.getElementById('m-sw').textContent = item.sw;
+      document.getElementById('m-tech').textContent = item.tech;
+      document.getElementById('m-type').textContent = item.type;
+      const cv = document.getElementById('modal-canvas');
+      if (mR) { cancelAnimationFrame(mAnim); mR.dispose(); }
+      mR = mkR(cv); mz = 3.6;
+      const { scene, cam, mesh } = buildScene(item.s);
+      cam.position.set(0, 0.3, mz);
+      const onDown = e => { mDrag = true; mlx = e.clientX; mly = e.clientY; };
+      const onUp = () => mDrag = false;
+      const onMove = e => { if (!mDrag || !mesh) return; mesh.rotation.y += (e.clientX - mlx) * 0.009; mesh.rotation.x += (e.clientY - mly) * 0.006; mlx = e.clientX; mly = e.clientY; };
+      cv.addEventListener('mousedown', onDown);
+      window.addEventListener('mouseup', onUp);
+      window.addEventListener('mousemove', onMove);
+      cv.addEventListener('wheel', e => { mz = Math.max(1.5, Math.min(8, mz + e.deltaY * 0.005)); }, { passive: true });
+      (function loop() { mAnim = requestAnimationFrame(loop); if (mesh && !mDrag) mesh.rotation.y += 0.007; cam.position.z += (mz - cam.position.z) * 0.1; sync(mR, cv, cam); mR.render(scene, cam); })();
+      document.getElementById('modal-bg').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal() { document.getElementById('modal-bg').classList.remove('open'); document.body.style.overflow = ''; if (mAnim) cancelAnimationFrame(mAnim); }
+    function handleBgClick(e) { if (e.target === document.getElementById('modal-bg')) closeModal(); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+
+    function createModelsSample() {
+      const doc = document.getElementById("fade-d2");
+      for (let x of portfolioItems) {
+        const parent = document.createElement('div');
+        parent.classList.add('colum-card');
+        const img = document.createElement('img');
+        img.classList.add('card-img');
+        img.src = x.image;
+        const div = document.createElement('div');
+        div.innerText = x.title;
+
+        parent.appendChild(img);
+        parent.appendChild(div);
+        doc.appendChild(parent);
+      }
+    }
+
+    createModelsSample();
+  </script>
+</body>
+
+</html>
